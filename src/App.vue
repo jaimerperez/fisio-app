@@ -1,5 +1,9 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-gray-50">
+  <div v-if="!isAuthenticated">
+    <RouterView />
+  </div>
+
+  <div v-else class="flex h-screen overflow-hidden bg-gray-50">
     <!-- Sidebar (tablet landscape) -->
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 shadow-sm">
       <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
@@ -14,6 +18,15 @@
           <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
+      <div class="px-3 py-4 border-t border-gray-100">
+        <button @click="handleSignOut"
+          class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-red-600 transition-colors text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+          </svg>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
     </aside>
 
     <!-- Main content -->
@@ -34,8 +47,36 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { h } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { usePatientsStore } from '@/stores/patients'
+import { useAppointmentsStore } from '@/stores/appointments'
+import { useSessionsStore } from '@/stores/sessions'
+
+const authStore = useAuthStore()
+const patientsStore = usePatientsStore()
+const appointmentsStore = useAppointmentsStore()
+const sessionsStore = useSessionsStore()
+const router = useRouter()
+
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await Promise.all([
+      patientsStore.fetchAll(),
+      appointmentsStore.fetchAll(),
+      sessionsStore.fetchAll(),
+    ])
+  }
+})
+
+async function handleSignOut() {
+  await authStore.signOut()
+  router.push('/login')
+}
 
 const CalendarIcon = () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24', 'stroke-width': '1.5', stroke: 'currentColor' }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5' })

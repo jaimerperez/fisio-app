@@ -1,49 +1,108 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Patient } from '@/types'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 
-const STORAGE_KEY = 'fisio_patients'
-
-function load(): Patient[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-  } catch {
-    return []
-  }
+type DbRow = {
+  id: string
+  user_id: string
+  name: string
+  last_name: string
+  birth_date: string | null
+  phone: string | null
+  email: string | null
+  dni: string | null
+  medical_history: string | null
+  photos: string[]
+  created_at: string
+  updated_at: string
 }
 
-function save(patients: Patient[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(patients))
+function fromDb(row: DbRow): Patient {
+  return {
+    id: row.id,
+    name: row.name,
+    lastName: row.last_name,
+    birthDate: row.birth_date ?? '',
+    phone: row.phone ?? '',
+    email: row.email ?? '',
+    dni: row.dni ?? '',
+    medicalHistory: row.medical_history ?? '',
+    photos: row.photos ?? [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
 }
 
 export const usePatientsStore = defineStore('patients', () => {
-  const patients = ref<Patient[]>(load())
+  const patients = ref<Patient[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
   const total = computed(() => patients.value.length)
 
-  function add(data: Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>): Patient {
-    const now = new Date().toISOString()
-    const patient: Patient = {
-      ...data,
-      id: crypto.randomUUID(),
-      createdAt: now,
-      updatedAt: now,
-    }
+  async function fetchAll() {
+    loading.value = true
+    error.value = null
+    const { data, error: err } = await supabase
+      .from('patients')
+      .select('*')
+      .order('last_name')
+    if (err) { error.value = err.message; loading.value = false; return }
+    patients.value = (data as DbRow[]).map(fromDb)
+    loading.value = false
+  }
+
+  async function add(data: Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>): Promise<Patient> {
+    const authStore = useAuthStore()
+    const { data: row, error: err } = await supabase
+      .from('patients')
+      .insert({
+        user_id: authStore.userId,
+        name: data.name,
+        last_name: data.lastName,
+        birth_date: data.birthDate || null,
+        phone: data.phone || null,
+        email: data.email || null,
+        dni: data.dni || null,
+        medical_history: data.medicalHistory || null,
+        photos: data.photos ?? [],
+      })
+      .select()
+      .single()
+    if (err) throw err
+    const patient = fromDb(row as DbRow)
     patients.value.push(patient)
-    save(patients.value)
     return patient
   }
 
-  function update(id: string, data: Partial<Patient>) {
+  async function update(id: string, data: Partial<Patient>) {
+    const dbData: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    if (data.name !== undefined) dbData.name = data.name
+    if (data.lastName !== undefined) dbData.last_name = data.lastName
+    if (data.birthDate !== undefined) dbData.birth_date = data.birthDate || null
+    if (data.phone !== undefined) dbData.phone = data.phone || null
+    if (data.email !== undefined) dbData.email = data.email || null
+    if (data.dni !== undefined) dbData.dni = data.dni || null
+    if (data.medicalHistory !== undefined) dbData.medical_history = data.medicalHistory || null
+    if (data.photos !== undefined) dbData.photos = data.photos
+
+    const { data: row, error: err } = await supabase
+      .from('patients')
+      .update(dbData)
+      .eq('id', id)
+      .select()
+      .single()
+    if (err) throw err
     const idx = patients.value.findIndex(p => p.id === id)
-    if (idx === -1) return
-    patients.value[idx] = { ...patients.value[idx], ...data, updatedAt: new Date().toISOString() }
-    save(patients.value)
+    if (idx !== -1) patients.value[idx] = fromDb(row as DbRow)
   }
 
-  function remove(id: string) {
+  async function remove(id: string) {
+    const { error: err } = await supabase.from('patients').delete().eq('id', id)
+    if (err) throw err
     patients.value = patients.value.filter(p => p.id !== id)
-    save(patients.value)
   }
 
   function getById(id: string) {
@@ -59,5 +118,5 @@ export const usePatientsStore = defineStore('patients', () => {
     )
   }
 
-  return { patients, total, add, update, remove, getById, search }
+  return { patients, loading, error, total, fetchAll, add, update, remove, getById, search }
 })

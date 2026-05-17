@@ -28,13 +28,9 @@
 
         <p v-if="errorMsg" class="text-red-600 text-sm">{{ errorMsg }}</p>
 
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 rounded-lg transition-colors disabled:opacity-50"
-        >
-          {{ loading ? 'Entrando...' : 'Entrar' }}
-        </button>
+        <BaseButton type="submit" :loading="loading" loading-text="Entrando..." class="w-full">
+          Entrar
+        </BaseButton>
       </form>
     </div>
   </div>
@@ -44,6 +40,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import BaseButton from '@/components/BaseButton.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()

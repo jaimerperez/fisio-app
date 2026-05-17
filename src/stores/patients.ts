@@ -14,6 +14,11 @@ type DbRow = {
   email: string | null
   dni: string | null
   medical_history: string | null
+  pathologies: string | null
+  observations: string | null
+  billing_rate: number | null
+  billing_method: string | null
+  billing_notes: string | null
   photos: string[]
   created_at: string
   updated_at: string
@@ -29,6 +34,11 @@ function fromDb(row: DbRow): Patient {
     email: row.email ?? '',
     dni: row.dni ?? '',
     medicalHistory: row.medical_history ?? '',
+    pathologies: row.pathologies ?? '',
+    observations: row.observations ?? '',
+    billingRate: row.billing_rate ?? 0,
+    billingMethod: row.billing_method ?? '',
+    billingNotes: row.billing_notes ?? '',
     photos: row.photos ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -55,6 +65,12 @@ export const usePatientsStore = defineStore('patients', () => {
   }
 
   async function add(data: Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>): Promise<Patient> {
+    if (data.email) {
+      const emailLower = data.email.toLowerCase()
+      if (patients.value.some(p => p.email?.toLowerCase() === emailLower)) {
+        throw new Error('EMAIL_TAKEN')
+      }
+    }
     const authStore = useAuthStore()
     const { data: row, error: err } = await supabase
       .from('patients')
@@ -67,6 +83,11 @@ export const usePatientsStore = defineStore('patients', () => {
         email: data.email || null,
         dni: data.dni || null,
         medical_history: data.medicalHistory || null,
+        pathologies: data.pathologies || null,
+        observations: data.observations || null,
+        billing_rate: data.billingRate || null,
+        billing_method: data.billingMethod || null,
+        billing_notes: data.billingNotes || null,
         photos: data.photos ?? [],
       })
       .select()
@@ -78,6 +99,12 @@ export const usePatientsStore = defineStore('patients', () => {
   }
 
   async function update(id: string, data: Partial<Patient>) {
+    if (data.email) {
+      const emailLower = data.email.toLowerCase()
+      if (patients.value.some(p => p.id !== id && p.email?.toLowerCase() === emailLower)) {
+        throw new Error('EMAIL_TAKEN')
+      }
+    }
     const dbData: Record<string, unknown> = { updated_at: new Date().toISOString() }
     if (data.name !== undefined) dbData.name = data.name
     if (data.lastName !== undefined) dbData.last_name = data.lastName
@@ -86,6 +113,11 @@ export const usePatientsStore = defineStore('patients', () => {
     if (data.email !== undefined) dbData.email = data.email || null
     if (data.dni !== undefined) dbData.dni = data.dni || null
     if (data.medicalHistory !== undefined) dbData.medical_history = data.medicalHistory || null
+    if (data.pathologies !== undefined) dbData.pathologies = data.pathologies || null
+    if (data.observations !== undefined) dbData.observations = data.observations || null
+    if (data.billingRate !== undefined) dbData.billing_rate = data.billingRate || null
+    if (data.billingMethod !== undefined) dbData.billing_method = data.billingMethod || null
+    if (data.billingNotes !== undefined) dbData.billing_notes = data.billingNotes || null
     if (data.photos !== undefined) dbData.photos = data.photos
 
     const { data: row, error: err } = await supabase

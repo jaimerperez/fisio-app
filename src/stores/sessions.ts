@@ -10,8 +10,12 @@ type DbRow = {
   patient_id: string
   date: string
   duration: number | null
-  notes: string | null
   treatment: string | null
+  symptoms: string | null
+  inspection: string | null
+  observations: string | null
+  notes: string | null
+  photos: string[]
   next_session: string | null
   created_at: string
 }
@@ -22,8 +26,12 @@ function fromDb(row: DbRow): Session {
     patientId: row.patient_id,
     date: row.date,
     duration: row.duration ?? 0,
-    notes: row.notes ?? '',
     treatment: row.treatment ?? '',
+    symptoms: row.symptoms ?? '',
+    inspection: row.inspection ?? '',
+    observations: row.observations ?? '',
+    notes: row.notes ?? '',
+    photos: (row.photos as string[]) ?? [],
     nextSession: row.next_session ?? undefined,
     createdAt: row.created_at,
   }
@@ -57,8 +65,12 @@ export const useSessionsStore = defineStore('sessions', () => {
         patient_id: data.patientId,
         date: data.date,
         duration: data.duration || null,
-        notes: data.notes || null,
         treatment: data.treatment || null,
+        symptoms: data.symptoms || null,
+        inspection: data.inspection || null,
+        observations: data.observations || null,
+        notes: data.notes || null,
+        photos: data.photos ?? [],
         next_session: data.nextSession || null,
       })
       .select()
@@ -74,8 +86,12 @@ export const useSessionsStore = defineStore('sessions', () => {
     if (data.patientId !== undefined) dbData.patient_id = data.patientId
     if (data.date !== undefined) dbData.date = data.date
     if (data.duration !== undefined) dbData.duration = data.duration || null
-    if (data.notes !== undefined) dbData.notes = data.notes || null
     if (data.treatment !== undefined) dbData.treatment = data.treatment || null
+    if (data.symptoms !== undefined) dbData.symptoms = data.symptoms || null
+    if (data.inspection !== undefined) dbData.inspection = data.inspection || null
+    if (data.observations !== undefined) dbData.observations = data.observations || null
+    if (data.notes !== undefined) dbData.notes = data.notes || null
+    if (data.photos !== undefined) dbData.photos = data.photos
     if (data.nextSession !== undefined) dbData.next_session = data.nextSession || null
 
     const { data: row, error: err } = await supabase

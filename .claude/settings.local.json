@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(grep -n \"showForm\\\\|showAvatarMenu\\\\|showSessionForm\" /home/jaime/fisio-app/src/views/*.vue /home/jaime/fisio-app/src/views/**/*.vue)",
+      "Bash(npx vue-tsc:*)"
     ]
   }
 }

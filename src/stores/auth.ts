@@ -10,15 +10,19 @@ export const useAuthStore = defineStore('auth', () => {
   const userId = computed(() => session.value?.user?.id ?? null)
   const isAuthenticated = computed(() => !!session.value)
 
+  // Promise que se resuelve cuando el auth está listo
+  let _resolveReady!: () => void
+  const ready = new Promise<void>(resolve => { _resolveReady = resolve })
+
   async function init() {
     const { data } = await supabase.auth.getSession()
     session.value = data.session
+    loading.value = false
+    _resolveReady()
 
     supabase.auth.onAuthStateChange((_event, newSession) => {
       session.value = newSession
     })
-
-    loading.value = false
   }
 
   async function signIn(email: string, password: string) {
@@ -31,5 +35,5 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = null
   }
 
-  return { session, loading, userId, isAuthenticated, init, signIn, signOut }
+  return { session, loading, ready, userId, isAuthenticated, init, signIn, signOut }
 })

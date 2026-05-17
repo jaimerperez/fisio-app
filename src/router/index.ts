@@ -11,7 +11,12 @@ const router = createRouter({
     },
     {
       path: '/',
-      redirect: '/agenda',
+      redirect: '/dashboard',
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('@/views/dashboard/DashboardView.vue'),
     },
     {
       path: '/agenda',
@@ -41,8 +46,9 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
+  await authStore.ready
   if (to.name !== 'login' && !authStore.isAuthenticated) {
     return '/login'
   }

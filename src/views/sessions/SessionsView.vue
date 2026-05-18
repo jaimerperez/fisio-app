@@ -34,7 +34,6 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useSessionsStore } from '@/stores/sessions'
 import { usePatientsStore } from '@/stores/patients'
-import BaseButton from '@/components/BaseButton.vue'
 import IconButton from '@/components/IconButton.vue'
 
 const sessionsStore = useSessionsStore()

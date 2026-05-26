@@ -1,19 +1,19 @@
 <template>
-  <div class="flex-1 overflow-auto pb-20 md:pb-0">
+  <div class="flex-1 overflow-auto pb-20 md:pb-0 bg-slate-50">
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-      <div class="flex items-center gap-3">
-        <button @click="prevDay" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+    <header class="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div class="flex items-center gap-2">
+        <button @click="prevDay" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
         </button>
-        <div>
-          <p class="text-sm text-gray-500">{{ dayOfWeek }}</p>
-          <h1 class="text-lg font-bold text-gray-900">{{ formattedDate }}</h1>
+        <div class="text-center min-w-[140px]">
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">{{ dayOfWeek }}</p>
+          <h1 class="text-base font-bold text-slate-900">{{ formattedDate }}</h1>
         </div>
-        <button @click="nextDay" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+        <button @click="nextDay" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
         </button>
-        <button @click="goToday" class="ml-1 px-3 py-1.5 text-xs font-medium bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100">Hoy</button>
+        <button @click="goToday" class="ml-1 px-3 py-1.5 text-xs font-semibold bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">Hoy</button>
       </div>
       <BaseButton @click="showForm = true" class="shadow-sm">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -22,27 +22,31 @@
     </header>
 
     <!-- Appointments list -->
-    <div class="p-4 space-y-3 max-w-2xl mx-auto">
-      <div v-if="todayAppointments.length === 0" class="text-center py-16 text-gray-400">
-        <svg class="w-12 h-12 mx-auto mb-3 opacity-40" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5"/></svg>
-        <p class="font-medium">Sin citas este día</p>
+    <div class="p-4 space-y-2.5 max-w-2xl mx-auto">
+      <div v-if="todayAppointments.length === 0" class="text-center py-16 text-slate-400">
+        <svg class="w-12 h-12 mx-auto mb-3 opacity-30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5"/></svg>
+        <p class="font-semibold text-slate-500">Sin citas este día</p>
+        <p class="text-sm mt-1">Añade una nueva cita con el botón de arriba</p>
       </div>
 
       <div v-for="apt in todayAppointments" :key="apt.id"
-        class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-start gap-4 cursor-pointer hover:border-primary-200 hover:shadow-md transition-all"
+        class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4 cursor-pointer hover:border-primary-200 hover:shadow-md transition-all"
         @click="openDetail(apt)">
-        <div class="text-center min-w-[56px]">
-          <p class="text-lg font-bold text-primary-600">{{ apt.time }}</p>
-          <p class="text-xs text-gray-400">{{ apt.duration }}min</p>
+        <div class="text-center min-w-[52px] shrink-0">
+          <p class="text-base font-bold text-primary-600">{{ apt.time }}</p>
+          <p class="text-xs text-slate-400">{{ apt.duration }}min</p>
         </div>
-        <div class="flex-1">
-          <p class="font-semibold text-gray-900">{{ patientName(apt.patientId) }}</p>
-          <p v-if="apt.notes" class="text-sm text-gray-500 mt-0.5">{{ apt.notes }}</p>
-          <span :class="statusClass(apt.status)" class="inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium">
-            {{ statusLabel(apt.status) }}
-          </span>
+        <div class="w-px h-10 bg-slate-100 shrink-0"></div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-slate-900 truncate">{{ patientName(apt.patientId) }}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span :class="statusClass(apt.status)" class="text-xs px-2 py-0.5 rounded-full font-medium">
+              {{ statusLabel(apt.status) }}
+            </span>
+            <p v-if="apt.notes" class="text-xs text-slate-400 truncate">{{ apt.notes }}</p>
+          </div>
         </div>
-        <div class="flex gap-2" @click.stop>
+        <div class="flex gap-1.5 shrink-0" @click.stop>
           <IconButton @click="changeStatus(apt)">
             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
           </IconButton>
@@ -103,7 +107,7 @@
               </div>
               <div v-if="selectedPatient.birthDate">
                 <p class="text-xs text-gray-400">Fecha de nacimiento</p>
-                <p class="text-sm font-medium text-gray-800">{{ selectedPatient.birthDate }}</p>
+                <p class="text-sm font-medium text-gray-800">{{ formatDateES(selectedPatient.birthDate) }}</p>
               </div>
             </div>
           </section>
@@ -197,6 +201,7 @@ import { usePatientsStore } from '@/stores/patients'
 import type { Appointment } from '@/types'
 import BaseButton from '@/components/BaseButton.vue'
 import IconButton from '@/components/IconButton.vue'
+import { formatDateES } from '@/utils/format'
 
 const router = useRouter()
 const appointmentsStore = useAppointmentsStore()

@@ -63,7 +63,7 @@
             </div>
             <div>
               <p class="text-xl font-bold text-gray-900">{{ patient.name }} {{ patient.lastName }}</p>
-              <p v-if="patient.birthDate" class="text-sm text-gray-500">{{ age }} años · {{ patient.birthDate }}</p>
+              <p v-if="patient.birthDate" class="text-sm text-gray-500">{{ age }} años · {{ formatDateES(patient.birthDate) }}</p>
             </div>
           </div>
 
@@ -239,7 +239,7 @@
             <div class="flex items-start justify-between">
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-medium text-gray-900 text-sm">{{ s.date }}</span>
+                  <span class="font-medium text-gray-900 text-sm">{{ formatDateES(s.date) }}</span>
                   <span class="text-gray-400 text-sm">·</span>
                   <span class="text-gray-500 text-sm">{{ s.duration }} min</span>
                   <span v-if="s.treatment" class="text-xs bg-primary-50 text-primary-700 rounded-full px-2 py-0.5 font-medium">{{ s.treatment }}</span>
@@ -331,7 +331,7 @@
           <div v-else class="space-y-2">
             <div v-for="s in reportSessions" :key="s.id" class="border border-gray-100 rounded-xl p-3">
               <div class="flex justify-between text-sm">
-                <span class="font-medium text-gray-900">{{ s.date }}</span>
+                <span class="font-medium text-gray-900">{{ formatDateES(s.date) }}</span>
                 <span class="text-gray-500">{{ s.duration }} min</span>
               </div>
               <p v-if="s.treatment" class="text-sm text-primary-700 mt-0.5">{{ s.treatment }}</p>
@@ -344,6 +344,66 @@
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
           Imprimir informe
         </BaseButton>
+      </div>
+
+      <!-- Tab: LOPD -->
+      <div v-if="activeTab === 'consent'" class="p-4 mx-auto max-w-2xl space-y-4">
+
+        <!-- Physio warning -->
+        <div v-if="!appSettings.data.physioConsentSignedAt"
+          class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
+          <svg class="w-5 h-5 text-amber-500 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-amber-800">Tú aún no has firmado el consentimiento</p>
+            <RouterLink to="/settings" class="text-xs text-amber-600 underline mt-0.5 inline-block">Ir a Configuración para firmarlo</RouterLink>
+          </div>
+        </div>
+
+        <!-- Patient status: signed -->
+        <div v-if="patient.consentSignedAt" class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 space-y-2">
+          <div class="flex items-center gap-2 text-emerald-700">
+            <svg class="w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="font-semibold">Consentimiento firmado</span>
+          </div>
+          <p class="text-sm text-emerald-700">{{ patient.name }} {{ patient.lastName }}</p>
+          <p class="text-xs text-emerald-600">{{ formatConsentDate(patient.consentSignedAt) }}</p>
+          <button @click="revokeConsent"
+            class="text-xs text-red-400 hover:text-red-600 transition-colors mt-2">
+            Revocar consentimiento
+          </button>
+        </div>
+
+        <!-- Patient status: unsigned -->
+        <div v-else class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
+          <div class="flex items-center gap-2 text-amber-600">
+            <svg class="w-5 h-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            <span class="text-sm font-medium">Pendiente de firma</span>
+          </div>
+
+          <!-- Consent text preview -->
+          <div class="bg-slate-50 rounded-xl p-4 max-h-64 overflow-y-auto">
+            <pre class="text-xs text-slate-600 whitespace-pre-wrap font-sans leading-relaxed">{{ appSettings.data.consentText }}</pre>
+          </div>
+
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input v-model="consentChecked" type="checkbox" class="mt-0.5 w-4 h-4 text-primary-600 rounded" />
+            <span class="text-sm text-slate-700">
+              <strong>{{ patient.name }} {{ patient.lastName }}</strong> ha leído y acepta la política de protección de datos
+            </span>
+          </label>
+
+          <button @click="signConsent" :disabled="!consentChecked"
+            class="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
+            :class="consentChecked ? 'bg-primary-600 hover:bg-primary-700 text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
+            Registrar consentimiento
+          </button>
+        </div>
       </div>
     </div>
 
@@ -422,7 +482,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { usePatientsStore } from '@/stores/patients'
 import { useSessionsStore } from '@/stores/sessions'
 import type { Session } from '@/types'
@@ -430,18 +490,40 @@ import BaseButton from '@/components/BaseButton.vue'
 import IconButton from '@/components/IconButton.vue'
 import PhotoPickerButtons from '@/components/PhotoPickerButtons.vue'
 import PhotoThumbnail from '@/components/PhotoThumbnail.vue'
+import { formatDateES } from '@/utils/format'
+import { useAppSettingsStore } from '@/stores/appSettings'
 
 const route = useRoute()
 const router = useRouter()
 const patientsStore = usePatientsStore()
 const sessionsStore = useSessionsStore()
+const appSettings = useAppSettingsStore()
+
+const consentChecked = ref(false)
+
+async function signConsent() {
+  if (!consentChecked.value || !patient.value) return
+  await patientsStore.update(patient.value.id, { consentSignedAt: new Date().toISOString() })
+  consentChecked.value = false
+}
+
+async function revokeConsent() {
+  if (!patient.value) return
+  if (!confirm('¿Revocar el consentimiento de este paciente?')) return
+  await patientsStore.update(patient.value.id, { consentSignedAt: undefined })
+}
+
+function formatConsentDate(iso: string) {
+  const d = new Date(iso)
+  return `${formatDateES(iso.slice(0, 10))} a las ${d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}h`
+}
 
 const editing = ref(false)
 const editingBilling = ref(false)
 const showSessionForm = ref(false)
 const editingSessionId = ref<string | null>(null)
 const saving = ref(false)
-const activeTab = ref<'ficha' | 'sessions' | 'report'>('ficha')
+const activeTab = ref<'ficha' | 'sessions' | 'report' | 'consent'>('ficha')
 const lightboxPhoto = ref<string | null>(null)
 const showAvatarMenu = ref(false)
 
@@ -471,6 +553,7 @@ const tabs = [
   { id: 'ficha', label: 'Ficha' },
   { id: 'sessions', label: 'Sesiones' },
   { id: 'report', label: 'Informe' },
+  { id: 'consent', label: 'LOPD' },
 ] as const
 
 const patient = computed(() => patientsStore.getById(route.params.id as string))

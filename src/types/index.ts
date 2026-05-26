@@ -13,6 +13,7 @@ export interface Patient {
   billingMethod: string     // forma de pago
   billingNotes: string      // notas de facturación
   photos: string[]          // base64 o URLs
+  consentSignedAt?: string  // fecha y hora de firma del consentimiento LOPD
   createdAt: string
   updatedAt: string
 }
@@ -40,5 +41,20 @@ export interface Appointment {
   duration: number   // minutos
   notes: string
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  createdAt: string
+}
+
+export interface ExerciseFolder {
+  id: string
+  name: string
+  createdAt: string
+}
+
+export interface Exercise {
+  id: string
+  folderId: string | null
+  name: string
+  mimeType: string
+  size: number
   createdAt: string
 }

@@ -19,6 +19,7 @@ type DbRow = {
   billing_rate: number | null
   billing_method: string | null
   billing_notes: string | null
+  consent_signed_at: string | null
   photos: string[]
   created_at: string
   updated_at: string
@@ -39,6 +40,7 @@ function fromDb(row: DbRow): Patient {
     billingRate: row.billing_rate ?? 0,
     billingMethod: row.billing_method ?? '',
     billingNotes: row.billing_notes ?? '',
+    consentSignedAt: row.consent_signed_at ?? undefined,
     photos: row.photos ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -88,6 +90,7 @@ export const usePatientsStore = defineStore('patients', () => {
         billing_rate: data.billingRate || null,
         billing_method: data.billingMethod || null,
         billing_notes: data.billingNotes || null,
+        consent_signed_at: data.consentSignedAt || null,
         photos: data.photos ?? [],
       })
       .select()
@@ -118,6 +121,7 @@ export const usePatientsStore = defineStore('patients', () => {
     if (data.billingRate !== undefined) dbData.billing_rate = data.billingRate || null
     if (data.billingMethod !== undefined) dbData.billing_method = data.billingMethod || null
     if (data.billingNotes !== undefined) dbData.billing_notes = data.billingNotes || null
+    if (data.consentSignedAt !== undefined) dbData.consent_signed_at = data.consentSignedAt || null
     if (data.photos !== undefined) dbData.photos = data.photos
 
     const { data: row, error: err } = await supabase

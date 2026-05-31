@@ -56,5 +56,6 @@ export interface Exercise {
   name: string
   mimeType: string
   size: number
+  path: string          // ruta del archivo en Supabase Storage
   createdAt: string
 }

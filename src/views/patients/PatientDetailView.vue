@@ -277,9 +277,8 @@
             <div v-if="s.photos && s.photos.length > 0" class="border-t border-gray-50 pt-3">
               <p class="text-xs text-gray-400 font-medium uppercase tracking-wide mb-2">Fotos de la consulta</p>
               <div class="grid grid-cols-4 gap-1.5">
-                <div v-for="(photo, i) in s.photos" :key="i" class="relative aspect-square">
-                  <img :src="photo" class="w-full h-full object-cover rounded-lg cursor-pointer" @click="openPhoto(photo)" />
-                </div>
+                <PhotoThumbnail v-for="(photo, i) in s.photos" :key="i"
+                  :src="photo" rounded="lg" @click="openPhoto(photo)" />
               </div>
             </div>
           </div>
@@ -492,6 +491,7 @@ import PhotoPickerButtons from '@/components/PhotoPickerButtons.vue'
 import PhotoThumbnail from '@/components/PhotoThumbnail.vue'
 import { formatDateES } from '@/utils/format'
 import { useAppSettingsStore } from '@/stores/appSettings'
+import { uploadPhoto, deletePhoto, getPhotoUrl } from '@/lib/photos'
 
 const route = useRoute()
 const router = useRouter()
@@ -614,27 +614,31 @@ async function saveBilling() {
 }
 
 // ── Patient photos ───────────────────────────────────────────────
-function onPatientPhotoPick(files: FileList) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader()
-    reader.onload = async (ev) => {
-      const data = ev.target?.result as string
-      const current = patient.value!.photos
-      try {
-        await patientsStore.update(patient.value!.id, { photos: [...current, data] })
-      } catch {
-        alert('Error al guardar la foto')
-      }
-    }
-    reader.readAsDataURL(file)
-  })
+const uploadingPhoto = ref(false)
+
+async function onPatientPhotoPick(files: FileList) {
+  if (!patient.value) return
+  uploadingPhoto.value = true
+  try {
+    const subfolder = `patients/${patient.value.id}`
+    const paths = await Promise.all(
+      Array.from(files).map(file => uploadPhoto(file, subfolder))
+    )
+    await patientsStore.update(patient.value.id, { photos: [...patient.value.photos, ...paths] })
+  } catch {
+    alert('Error al guardar la foto')
+  } finally {
+    uploadingPhoto.value = false
+  }
 }
 
 async function removePhoto(index: number) {
+  const removed = patient.value!.photos[index]
   const photos = [...patient.value!.photos]
   photos.splice(index, 1)
   try {
     await patientsStore.update(patient.value!.id, { photos })
+    await deletePhoto(removed).catch(() => {})
   } catch {
     alert('Error al eliminar la foto')
   }
@@ -705,18 +709,23 @@ function closeSessionForm() {
   editingSessionId.value = null
 }
 
-function onSessionPhotoPick(files: FileList) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      sessionForm.photos.push(ev.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-  })
+async function onSessionPhotoPick(files: FileList) {
+  uploadingPhoto.value = true
+  try {
+    const paths = await Promise.all(
+      Array.from(files).map(file => uploadPhoto(file, 'sessions'))
+    )
+    sessionForm.photos.push(...paths)
+  } catch {
+    alert('Error al subir la foto')
+  } finally {
+    uploadingPhoto.value = false
+  }
 }
 
-function removeSessionPhoto(index: number) {
-  sessionForm.photos.splice(index, 1)
+async function removeSessionPhoto(index: number) {
+  const [removed] = sessionForm.photos.splice(index, 1)
+  await deletePhoto(removed).catch(() => {})
 }
 
 async function saveSession() {
@@ -738,14 +747,20 @@ async function saveSession() {
 async function deleteSession(id: string) {
   if (!confirm('¿Eliminar esta sesión?')) return
   try {
+    const photos = sessionsStore.sessions.find(s => s.id === id)?.photos ?? []
     await sessionsStore.remove(id)
+    await Promise.all(photos.map(p => deletePhoto(p).catch(() => {})))
   } catch {
     alert('Error al eliminar la sesión')
   }
 }
 
-function openPhoto(src: string) {
-  lightboxPhoto.value = src
+async function openPhoto(src: string) {
+  try {
+    lightboxPhoto.value = await getPhotoUrl(src)
+  } catch {
+    lightboxPhoto.value = src
+  }
 }
 
 // ── Report ───────────────────────────────────────────────────────

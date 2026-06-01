@@ -1,4 +1,4 @@
-import{I as c,r as l}from"./index-CVxbTFdc.js";const n="fisioapp_settings",t=`CONSENTIMIENTO INFORMADO PARA EL TRATAMIENTO DE DATOS PERSONALES
+import{I as c,r as l}from"./index-CgIwMeVI.js";const n="fisioapp_settings",t=`CONSENTIMIENTO INFORMADO PARA EL TRATAMIENTO DE DATOS PERSONALES
 
 De acuerdo con el Reglamento General de Protección de Datos (RGPD UE 2016/679) y la Ley Orgánica 3/2018 de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPD-GDD), le informamos:
 

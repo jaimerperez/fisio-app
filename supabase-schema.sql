@@ -25,6 +25,7 @@ create table if not exists patients (
   billing_method text,
   billing_notes text,
   consent_signed_at timestamptz,
+  avatar_path text,
   photos jsonb default '[]'::jsonb,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -37,6 +38,7 @@ alter table patients add column if not exists billing_rate numeric;
 alter table patients add column if not exists billing_method text;
 alter table patients add column if not exists billing_notes text;
 alter table patients add column if not exists consent_signed_at timestamptz;
+alter table patients add column if not exists avatar_path text;
 alter table patients add column if not exists updated_at timestamptz default now();
 
 alter table patients enable row level security;
@@ -107,6 +109,27 @@ create policy "own" on sessions for all
 create index if not exists sessions_user_id_idx on sessions (user_id);
 create index if not exists sessions_patient_id_idx on sessions (patient_id);
 create index if not exists sessions_date_idx on sessions (date);
+
+-- ---------------------------------------------
+-- Tabla: app_settings (una fila por usuario)
+-- Almacena la firma LOPD del fisioterapeuta y el texto del consentimiento.
+-- ---------------------------------------------
+create table if not exists app_settings (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null unique,
+  consent_text text not null,
+  physio_name text not null default '',
+  physio_consent_signed_at timestamptz,
+  created_at timestamptz default now()
+);
+
+alter table app_settings enable row level security;
+drop policy if exists "own" on app_settings;
+create policy "own" on app_settings for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index if not exists app_settings_user_id_idx on app_settings (user_id);
 
 -- ---------------------------------------------
 -- Tabla: exercise_folders

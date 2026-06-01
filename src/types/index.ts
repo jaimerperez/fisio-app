@@ -14,6 +14,7 @@ export interface Patient {
   billingNotes: string      // notas de facturación
   photos: string[]          // base64 o URLs
   consentSignedAt?: string  // fecha y hora de firma del consentimiento LOPD
+  avatarPath?: string       // ruta en Supabase Storage (bucket patient-photos)
   createdAt: string
   updatedAt: string
 }

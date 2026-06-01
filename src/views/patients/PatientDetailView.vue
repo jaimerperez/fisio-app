@@ -33,7 +33,7 @@
             <div class="relative shrink-0">
               <div @click="showAvatarMenu = !showAvatarMenu"
                 class="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-2xl cursor-pointer overflow-hidden ring-2 ring-transparent hover:ring-primary-300 transition-all">
-                <img v-if="profilePhoto" :src="profilePhoto" class="w-full h-full object-cover" />
+                <img v-if="profilePhotoUrl" :src="profilePhotoUrl" class="w-full h-full object-cover" />
                 <span v-else>{{ patient.name[0] }}{{ patient.lastName[0] }}</span>
               </div>
               <!-- Camera icon badge -->
@@ -53,7 +53,7 @@
                   Elegir de galería
                   <input type="file" accept="image/*" class="hidden" @change="setProfilePhoto" />
                 </label>
-                <button v-if="profilePhoto" @click="removeProfilePhoto" class="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-red-50 border-t border-gray-50">
+                <button v-if="profilePhotoUrl" @click="removeProfilePhoto" class="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-red-50 border-t border-gray-50">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
                   Eliminar foto
                 </button>
@@ -527,26 +527,47 @@ const activeTab = ref<'ficha' | 'sessions' | 'report' | 'consent'>('ficha')
 const lightboxPhoto = ref<string | null>(null)
 const showAvatarMenu = ref(false)
 
-const profilePhotoKey = computed(() => `profilePhoto:${route.params.id}`)
-const profilePhoto = ref<string | null>(localStorage.getItem(`profilePhoto:${route.params.id}`))
+const profilePhotoUrl = ref<string | null>(null)
 
-function setProfilePhoto(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    const dataUrl = reader.result as string
-    profilePhoto.value = dataUrl
-    localStorage.setItem(profilePhotoKey.value, dataUrl)
-    showAvatarMenu.value = false
+// Resolver la URL firmada del avatar cuando cambia el paciente
+watch(() => patient.value?.avatarPath, async (path) => {
+  if (!path) { profilePhotoUrl.value = null; return }
+  try {
+    profilePhotoUrl.value = await getPhotoUrl(path)
+  } catch {
+    profilePhotoUrl.value = null
   }
-  reader.readAsDataURL(file)
+}, { immediate: true })
+
+async function setProfilePhoto(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file || !patient.value) return
+  showAvatarMenu.value = false
+  try {
+    // Borrar avatar anterior si existe
+    if (patient.value.avatarPath) {
+      await deletePhoto(patient.value.avatarPath).catch(() => {})
+    }
+    const path = await uploadPhoto(file, `avatars/${patient.value.id}`)
+    await patientsStore.update(patient.value.id, { avatarPath: path })
+    profilePhotoUrl.value = await getPhotoUrl(path)
+  } catch {
+    alert('Error al guardar la foto de perfil')
+  }
 }
 
-function removeProfilePhoto() {
-  profilePhoto.value = null
-  localStorage.removeItem(profilePhotoKey.value)
+async function removeProfilePhoto() {
+  if (!patient.value) return
   showAvatarMenu.value = false
+  try {
+    if (patient.value.avatarPath) {
+      await deletePhoto(patient.value.avatarPath).catch(() => {})
+    }
+    await patientsStore.update(patient.value.id, { avatarPath: undefined })
+    profilePhotoUrl.value = null
+  } catch {
+    alert('Error al eliminar la foto de perfil')
+  }
 }
 
 const tabs = [

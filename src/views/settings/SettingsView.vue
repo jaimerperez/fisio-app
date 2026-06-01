@@ -144,13 +144,21 @@ const consentDraft = ref(settings.data.consentText)
 
 const textChanged = computed(() => consentDraft.value !== settings.data.consentText)
 
-function signPhysio() {
+async function signPhysio() {
   if (!physioChecked.value || !physioName.value.trim()) return
-  settings.signPhysioConsent(physioName.value.trim())
+  try {
+    await settings.signPhysioConsent(physioName.value.trim())
+  } catch {
+    alert('Error al guardar la firma')
+  }
 }
 
-function saveText() {
-  settings.updateConsentText(consentDraft.value)
+async function saveText() {
+  try {
+    await settings.updateConsentText(consentDraft.value)
+  } catch {
+    alert('Error al guardar el texto del consentimiento')
+  }
 }
 
 function formatDateTime(iso: string) {

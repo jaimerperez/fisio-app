@@ -64,12 +64,14 @@ import { usePatientsStore } from '@/stores/patients'
 import { useAppointmentsStore } from '@/stores/appointments'
 import { useSessionsStore } from '@/stores/sessions'
 import { useExercisesStore } from '@/stores/exercises'
+import { useAppSettingsStore } from '@/stores/appSettings'
 
 const authStore = useAuthStore()
 const patientsStore = usePatientsStore()
 const appointmentsStore = useAppointmentsStore()
 const sessionsStore = useSessionsStore()
 const exercisesStore = useExercisesStore()
+const appSettingsStore = useAppSettingsStore()
 const router = useRouter()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -81,6 +83,7 @@ onMounted(async () => {
       appointmentsStore.fetchAll(),
       sessionsStore.fetchAll(),
       exercisesStore.fetchAll(),
+      appSettingsStore.fetchAll(),
     ])
   }
 })

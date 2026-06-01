@@ -3,7 +3,7 @@
     <!-- Left panel -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-slate-800 flex-col justify-between p-12">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-white font-bold text-xl backdrop-blur-sm">F</div>
+        <AppLogo size="lg" variant="glass" />
         <span class="text-2xl font-bold text-white tracking-tight">FisioApp</span>
       </div>
       <div>
@@ -18,7 +18,7 @@
       <div class="w-full max-w-sm">
         <!-- Mobile logo -->
         <div class="lg:hidden flex items-center gap-2 mb-8">
-          <div class="w-8 h-8 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold">F</div>
+          <AppLogo size="sm" />
           <span class="text-xl font-bold text-slate-800">FisioApp</span>
         </div>
 
@@ -66,6 +66,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import AppLogo from '@/components/AppLogo.vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 

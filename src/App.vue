@@ -7,7 +7,7 @@
     <!-- Sidebar (tablet landscape) -->
     <aside class="hidden md:flex flex-col w-64 bg-slate-900 shrink-0">
       <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-800">
-        <div class="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">F</div>
+        <AppLogo />
         <span class="text-xl font-bold text-white tracking-tight">Nirvana</span>
       </div>
       <nav class="flex-1 px-3 py-4 space-y-0.5">
@@ -60,6 +60,7 @@ import { computed, onMounted } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { h } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import AppLogo from '@/components/AppLogo.vue'
 import { usePatientsStore } from '@/stores/patients'
 import { useAppointmentsStore } from '@/stores/appointments'
 import { useSessionsStore } from '@/stores/sessions'

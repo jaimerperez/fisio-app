@@ -6,9 +6,8 @@
   <div v-else class="flex h-screen overflow-hidden bg-slate-50">
     <!-- Sidebar (tablet landscape) -->
     <aside class="hidden md:flex flex-col w-64 bg-slate-900 shrink-0">
-      <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-800">
-        <AppLogo />
-        <span class="text-xl font-bold text-white tracking-tight">Nirvana</span>
+      <div class="flex items-center justify-center px-6 py-5 border-b border-slate-800">
+        <BrandLogo class-name="w-36 text-white" />
       </div>
       <nav class="flex-1 px-3 py-4 space-y-0.5">
         <RouterLink v-for="item in navItems" :key="item.to" :to="item.to"
@@ -60,7 +59,7 @@ import { computed, onMounted } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { h } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import AppLogo from '@/components/AppLogo.vue'
+import BrandLogo from '@/components/BrandLogo.vue'
 import { usePatientsStore } from '@/stores/patients'
 import { useAppointmentsStore } from '@/stores/appointments'
 import { useSessionsStore } from '@/stores/sessions'

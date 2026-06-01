@@ -18,7 +18,9 @@
       "PowerShell(wsl.exe -d ubuntu-20.04 -- bash -lc \"which node; ls ~/.nvm/versions/node 2>/dev/null; command -v nvm\")",
       "Bash(rm -f '\\\\\\\\wsl.localhost\\\\ubuntu-20.04\\\\home\\\\jaime\\\\fisio-app\\\\_typecheck.sh' && echo borrado)",
       "Bash(rm -f '\\\\\\\\wsl.localhost\\\\ubuntu-20.04\\\\home\\\\jaime\\\\fisio-app\\\\src\\\\db\\\\exerciseFiles.ts')",
-      "Bash(rmdir '\\\\\\\\wsl.localhost\\\\ubuntu-20.04\\\\home\\\\jaime\\\\fisio-app\\\\src\\\\db')"
+      "Bash(rmdir '\\\\\\\\wsl.localhost\\\\ubuntu-20.04\\\\home\\\\jaime\\\\fisio-app\\\\src\\\\db')",
+      "Read(///wsl.localhost/ubuntu-20.04/home/jaime/fisio-app/.github/**)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

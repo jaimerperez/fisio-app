@@ -9,7 +9,8 @@
       "Bash(which npm *)",
       "Read(//usr/**)",
       "Bash(find /home -name \"npm\")",
-      "Read(//home/jaime/.nvm/versions/**)"
+      "Read(//home/jaime/.nvm/versions/**)",
+      "Bash(git push *)"
     ]
   }
 }

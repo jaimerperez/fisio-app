@@ -27,17 +27,6 @@
 
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-            <input
-              v-model="email"
-              type="email"
-              required
-              autocomplete="email"
-              placeholder="tu@email.com"
-              class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder:text-slate-400"
-            />
-          </div>
-          <div>
             <label class="block text-sm font-medium text-slate-700 mb-1.5">Contraseña</label>
             <input
               v-model="password"
@@ -72,7 +61,7 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const router = useRouter()
 
-const email = ref('')
+const loginEmail = import.meta.env.VITE_LOGIN_EMAIL as string
 const password = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
@@ -81,7 +70,7 @@ async function handleSubmit() {
   loading.value = true
   errorMsg.value = ''
   try {
-    await authStore.signIn(email.value, password.value)
+    await authStore.signIn(loginEmail, password.value)
     router.push('/')
   } catch (e: unknown) {
     errorMsg.value = e instanceof Error ? e.message : 'Error al iniciar sesión'

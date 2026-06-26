@@ -6,12 +6,18 @@ name: Keep Supabase alive
 on:
   schedule:
     - cron: '0 6 * * *'   # cada dia a las 06:00 UTC
+    - cron: '0 6 1 * *'    # ademas, el dia 1 de cada mes (para el commit de actividad)
   workflow_dispatch: {}     # permite lanzarlo a mano desde la pestana Actions
+
+permissions:
+  contents: write
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Ping Supabase REST API
         run: |
           status=$(curl -s -o /dev/null -w "%{http_code}" \
@@ -24,3 +30,21 @@ jobs:
             exit 1
           fi
           echo "Supabase sigue activo."
+
+      # GitHub desactiva los workflows programados si el repo lleva 60 dias
+      # sin ningun commit. Este paso genera un commit minimo una vez al mes
+      # para que el cron nunca se desactive solo, sin depender de que alguien
+      # se acuerde de programarlo.
+      - name: Registrar actividad del repo (evita la desactivacion a los 60 dias)
+        run: |
+          mkdir -p .github
+          echo "Ultimo ping: $(date -u +%Y-%m-%dT%H:%M:%SZ)" > .github/keepalive-last-run.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive-last-run.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: keepalive activity ping"
+            git push
+          else
+            echo "Sin cambios que commitear."
+          fi

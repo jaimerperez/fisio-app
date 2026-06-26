@@ -1,0 +1,26 @@
+name: Keep Supabase alive
+
+# Evita que el proyecto de Supabase (plan gratuito) se pause por inactividad
+# tras 7 dias. Hace una peticion ligera a la base de datos cada dia.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # cada dia a las 06:00 UTC
+  workflow_dispatch: {}     # permite lanzarlo a mano desde la pestana Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/appointments?select=id&limit=1" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}")
+          echo "HTTP status: $status"
+          if [ "$status" -lt 200 ] || [ "$status" -ge 400 ]; then
+            echo "::error::Supabase respondio con estado $status"
+            exit 1
+          fi
+          echo "Supabase sigue activo."

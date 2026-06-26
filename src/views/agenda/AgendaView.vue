@@ -3,56 +3,52 @@
     <!-- Header -->
     <header class="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
       <div class="flex items-center gap-2">
-        <button @click="prevDay" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+        <button @click="prevWeek" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
         </button>
-        <div class="text-center min-w-[140px]">
-          <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">{{ dayOfWeek }}</p>
-          <h1 class="text-base font-bold text-slate-900">{{ formattedDate }}</h1>
+        <div class="text-center min-w-[160px]">
+          <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">Semana</p>
+          <h1 class="text-base font-bold text-slate-900">{{ weekRangeLabel }}</h1>
         </div>
-        <button @click="nextDay" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+        <button @click="nextWeek" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
         </button>
         <button @click="goToday" class="ml-1 px-3 py-1.5 text-xs font-semibold bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors">Hoy</button>
       </div>
-      <BaseButton @click="showForm = true" class="shadow-sm">
+      <BaseButton @click="openNewAppointment" class="shadow-sm">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
         Nueva cita
       </BaseButton>
     </header>
 
-    <!-- Appointments list -->
-    <div class="p-4 space-y-2.5 max-w-2xl mx-auto">
-      <div v-if="todayAppointments.length === 0" class="text-center py-16 text-slate-400">
-        <svg class="w-12 h-12 mx-auto mb-3 opacity-30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5"/></svg>
-        <p class="font-semibold text-slate-500">Sin citas este día</p>
-        <p class="text-sm mt-1">Añade una nueva cita con el botón de arriba</p>
-      </div>
-
-      <div v-for="apt in todayAppointments" :key="apt.id"
-        class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4 cursor-pointer hover:border-primary-200 hover:shadow-md transition-all"
-        @click="openDetail(apt)">
-        <div class="text-center min-w-[52px] shrink-0">
-          <p class="text-base font-bold text-primary-600">{{ apt.time }}</p>
-          <p class="text-xs text-slate-400">{{ apt.duration }}min</p>
-        </div>
-        <div class="w-px h-10 bg-slate-100 shrink-0"></div>
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-slate-900 truncate">{{ patientName(apt.patientId) }}</p>
-          <div class="flex items-center gap-2 mt-0.5">
-            <span :class="statusClass(apt.status)" class="text-xs px-2 py-0.5 rounded-full font-medium">
-              {{ statusLabel(apt.status) }}
-            </span>
-            <p v-if="apt.notes" class="text-xs text-slate-400 truncate">{{ apt.notes }}</p>
+    <!-- Week grid -->
+    <div class="flex md:grid md:grid-cols-7 overflow-x-auto md:overflow-visible snap-x snap-mandatory gap-3 p-4">
+      <div v-for="day in weekDays" :key="toDateKey(day)"
+        class="min-w-[160px] md:min-w-0 shrink-0 md:shrink snap-start">
+        <div class="flex items-center justify-between rounded-t-2xl px-3 py-2"
+          :class="isToday(day) ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-600'">
+          <div>
+            <p class="text-[11px] font-semibold uppercase tracking-wide opacity-80">{{ dayShortNames[day.getDay() === 0 ? 6 : day.getDay() - 1] }}</p>
+            <p class="text-sm font-bold">{{ day.getDate() }}</p>
           </div>
+          <button @click="openNewAppointmentForDay(day)"
+            class="p-1 rounded-lg transition-colors"
+            :class="isToday(day) ? 'hover:bg-white/20' : 'hover:bg-slate-200'">
+            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
         </div>
-        <div class="flex gap-1.5 shrink-0" @click.stop>
-          <IconButton @click="changeStatus(apt)">
-            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-          </IconButton>
-          <IconButton variant="danger" @click="deleteApt(apt.id)">
-            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-          </IconButton>
+        <div class="bg-white border border-slate-100 rounded-b-2xl p-2 space-y-2 min-h-[80px]">
+          <p v-if="appointmentsFor(day).length === 0" class="text-xs text-slate-400 text-center py-4">Sin citas</p>
+          <div v-for="apt in appointmentsFor(day)" :key="apt.id"
+            class="rounded-xl border border-slate-100 shadow-sm p-2.5 cursor-pointer hover:border-primary-200 hover:shadow-md transition-all bg-white"
+            @click="openDetail(apt)">
+            <div class="flex items-center justify-between gap-1">
+              <p class="text-xs font-bold text-primary-600">{{ apt.time }}</p>
+              <span :class="statusDotClass(apt.status)" class="w-2 h-2 rounded-full shrink-0" :title="statusLabel(apt.status)"></span>
+            </div>
+            <p class="text-xs font-semibold text-slate-900 truncate mt-1">{{ patientName(apt.patientId) }}</p>
+            <p class="text-[11px] text-slate-400">{{ apt.duration }}min</p>
+          </div>
         </div>
       </div>
     </div>
@@ -65,7 +61,7 @@
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
         </button>
         <div class="flex-1">
-          <p class="text-xs text-gray-400">{{ formattedDate }}</p>
+          <p class="text-xs text-gray-400">{{ formatLong(selectedApt.date) }}</p>
           <h2 class="text-base font-bold text-gray-900 leading-tight">{{ patientName(selectedApt.patientId) }}</h2>
         </div>
         <span :class="statusClass(selectedApt.status)" class="text-xs px-2.5 py-1 rounded-full font-medium">{{ statusLabel(selectedApt.status) }}</span>
@@ -152,6 +148,9 @@
         <BaseButton variant="secondary" @click="goToPatient(selectedApt.patientId)" class="flex-1">
           Ver paciente
         </BaseButton>
+        <IconButton variant="danger" @click="deleteAptInDetail">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+        </IconButton>
       </div>
     </div>
 
@@ -170,13 +169,17 @@
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
+              <label class="text-sm font-medium text-gray-700">Fecha</label>
+              <input v-model="form.date" type="date" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
               <label class="text-sm font-medium text-gray-700">Hora</label>
               <input v-model="form.time" type="time" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Duración (min)</label>
-              <input v-model.number="form.duration" type="number" min="15" step="15" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
-            </div>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700">Duración (min)</label>
+            <input v-model.number="form.duration" type="number" min="15" step="15" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div>
             <label class="text-sm font-medium text-gray-700">Notas</label>
@@ -186,7 +189,7 @@
 
         <div class="flex gap-3 pt-1">
           <BaseButton variant="secondary" @click="showForm = false" class="flex-1">Cancelar</BaseButton>
-          <BaseButton @click="saveAppointment" :disabled="!form.patientId || !form.time" :loading="saving" class="flex-1">Guardar</BaseButton>
+          <BaseButton @click="saveAppointment" :disabled="!form.patientId || !form.date || !form.time" :loading="saving" class="flex-1">Guardar</BaseButton>
         </div>
       </div>
     </div>
@@ -222,7 +225,7 @@ function openDetail(apt: Appointment) {
 async function changeStatusInDetail() {
   if (!selectedApt.value) return
   await changeStatus(selectedApt.value)
-  const apt = appointmentsStore.byDate(dateKey.value).find(a => a.id === selectedApt.value!.id)
+  const apt = appointmentsStore.byDate(selectedApt.value.date).find(a => a.id === selectedApt.value!.id)
   if (apt) selectedApt.value = { ...apt }
 }
 
@@ -233,6 +236,7 @@ function goToPatient(id: string) {
 
 const form = reactive({
   patientId: '',
+  date: '',
   time: '09:00',
   duration: 45,
   notes: '',
@@ -240,28 +244,78 @@ const form = reactive({
 
 const patients = computed(() => patientsStore.patients)
 
-const dateKey = computed(() => selectedDate.value.toISOString().slice(0, 10))
-
-const todayAppointments = computed(() => appointmentsStore.byDate(dateKey.value))
-
-const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
+const dayShortNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
-const dayOfWeek = computed(() => days[selectedDate.value.getDay()])
-const formattedDate = computed(() => `${selectedDate.value.getDate()} de ${months[selectedDate.value.getMonth()]} ${selectedDate.value.getFullYear()}`)
+function toDateKey(d: Date) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
-function prevDay() {
+function formatLong(dateKey: string) {
+  const [y, m, d] = dateKey.split('-').map(Number)
+  return `${d} de ${months[m - 1]} ${y}`
+}
+
+function isToday(d: Date) {
+  return toDateKey(d) === toDateKey(new Date())
+}
+
+const weekStart = computed(() => {
   const d = new Date(selectedDate.value)
-  d.setDate(d.getDate() - 1)
+  const offset = d.getDay() === 0 ? -6 : 1 - d.getDay()
+  d.setDate(d.getDate() + offset)
+  return d
+})
+
+const weekDays = computed(() =>
+  Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart.value)
+    d.setDate(d.getDate() + i)
+    return d
+  })
+)
+
+const weekRangeLabel = computed(() => {
+  const start = weekDays.value[0]
+  const end = weekDays.value[6]
+  if (start.getMonth() === end.getMonth()) {
+    return `${start.getDate()} - ${end.getDate()} de ${months[end.getMonth()]} ${end.getFullYear()}`
+  }
+  return `${start.getDate()} de ${months[start.getMonth()]} - ${end.getDate()} de ${months[end.getMonth()]} ${end.getFullYear()}`
+})
+
+function appointmentsFor(day: Date) {
+  return appointmentsStore.byDate(toDateKey(day))
+}
+
+function prevWeek() {
+  const d = new Date(selectedDate.value)
+  d.setDate(d.getDate() - 7)
   selectedDate.value = d
 }
-function nextDay() {
+function nextWeek() {
   const d = new Date(selectedDate.value)
-  d.setDate(d.getDate() + 1)
+  d.setDate(d.getDate() + 7)
   selectedDate.value = d
 }
 function goToday() {
   selectedDate.value = new Date()
+}
+
+function openFormForDate(dateKey: string) {
+  form.date = dateKey
+  showForm.value = true
+}
+
+function openNewAppointment() {
+  openFormForDate(toDateKey(new Date()))
+}
+
+function openNewAppointmentForDay(day: Date) {
+  openFormForDate(toDateKey(day))
 }
 
 function patientName(id: string) {
@@ -282,8 +336,16 @@ const statusLabels: Record<Appointment['status'], string> = {
   cancelled: 'Cancelada',
 }
 
+const statusDotColors: Record<Appointment['status'], string> = {
+  pending: 'bg-yellow-400',
+  confirmed: 'bg-blue-400',
+  completed: 'bg-green-400',
+  cancelled: 'bg-red-400',
+}
+
 function statusClass(s: Appointment['status']) { return statusColors[s] }
 function statusLabel(s: Appointment['status']) { return statusLabels[s] }
+function statusDotClass(s: Appointment['status']) { return statusDotColors[s] }
 
 const saving = ref(false)
 
@@ -297,13 +359,20 @@ async function changeStatus(apt: Appointment) {
   }
 }
 
-async function deleteApt(id: string) {
-  if (!confirm('¿Eliminar esta cita?')) return
+async function deleteApt(id: string): Promise<boolean> {
+  if (!confirm('¿Eliminar esta cita?')) return false
   try {
     await appointmentsStore.remove(id)
+    return true
   } catch {
     alert('Error al eliminar la cita')
+    return false
   }
+}
+
+async function deleteAptInDetail() {
+  if (!selectedApt.value) return
+  if (await deleteApt(selectedApt.value.id)) selectedApt.value = null
 }
 
 async function saveAppointment() {
@@ -311,14 +380,14 @@ async function saveAppointment() {
   try {
     await appointmentsStore.add({
       patientId: form.patientId,
-      date: dateKey.value,
+      date: form.date,
       time: form.time,
       duration: form.duration,
       notes: form.notes,
       status: 'confirmed',
     })
     showForm.value = false
-    Object.assign(form, { patientId: '', time: '09:00', duration: 45, notes: '' })
+    Object.assign(form, { patientId: '', date: '', time: '09:00', duration: 45, notes: '' })
   } catch {
     alert('Error al guardar la cita')
   } finally {

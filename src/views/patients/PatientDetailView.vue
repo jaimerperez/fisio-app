@@ -523,7 +523,10 @@ const editingBilling = ref(false)
 const showSessionForm = ref(false)
 const editingSessionId = ref<string | null>(null)
 const saving = ref(false)
-const activeTab = ref<'ficha' | 'sessions' | 'report' | 'consent'>('ficha')
+const validTabs = ['ficha', 'sessions', 'report', 'consent'] as const
+const activeTab = ref<typeof validTabs[number]>(
+  validTabs.includes(route.query.tab as typeof validTabs[number]) ? (route.query.tab as typeof validTabs[number]) : 'ficha'
+)
 const lightboxPhoto = ref<string | null>(null)
 const showAvatarMenu = ref(false)
 
@@ -729,6 +732,16 @@ function closeSessionForm() {
   showSessionForm.value = false
   editingSessionId.value = null
 }
+
+let openedSessionFromQuery = false
+watch(patientSessions, (list) => {
+  if (openedSessionFromQuery || !route.query.session) return
+  const target = list.find(s => s.id === route.query.session)
+  if (target) {
+    openEditSession(target)
+    openedSessionFromQuery = true
+  }
+}, { immediate: true })
 
 async function onSessionPhotoPick(files: FileList) {
   uploadingPhoto.value = true

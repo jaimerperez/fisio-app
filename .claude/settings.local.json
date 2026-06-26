@@ -10,7 +10,18 @@
       "Read(//usr/**)",
       "Bash(find /home -name \"npm\")",
       "Read(//home/jaime/.nvm/versions/**)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Read(///wsl.localhost/ubuntu-20.04/home/jaime/**)",
+      "Read(///wsl.localhost/ubuntu-20.04/home/jaime/fisio-app/**)",
+      "Bash(echo \"EXIT: $?\")",
+      "PowerShell(npx vue-tsc -b 2>&1 | Select-Object -First 40; \"EXIT: $LASTEXITCODE\")",
+      "Bash(wsl -d ubuntu-20.04 -e bash -lc 'cd /home/jaime/fisio-app && npx vue-tsc -b 2>&1 | head -40; echo EXIT:$?')",
+      "PowerShell(wsl.exe -d ubuntu-20.04 -- bash -lc \"which node; ls ~/.nvm/versions/node 2>/dev/null; command -v nvm\")",
+      "Bash(rm -f '\\\\\\\\wsl.localhost\\\\ubuntu-20.04\\\\home\\\\jaime\\\\fisio-app\\\\_typecheck.sh' && echo borrado)",
+      "Bash(rm -f '\\\\\\\\wsl.localhost\\\\ubuntu-20.04\\\\home\\\\jaime\\\\fisio-app\\\\src\\\\db\\\\exerciseFiles.ts')",
+      "Bash(rmdir '\\\\\\\\wsl.localhost\\\\ubuntu-20.04\\\\home\\\\jaime\\\\fisio-app\\\\src\\\\db')",
+      "Read(///wsl.localhost/ubuntu-20.04/home/jaime/fisio-app/.github/**)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

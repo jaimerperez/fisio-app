@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-
-const KEY = 'fisioapp_settings'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
 
 const DEFAULT_CONSENT = `CONSENTIMIENTO INFORMADO PARA EL TRATAMIENTO DE DATOS PERSONALES
 
@@ -33,39 +33,90 @@ interface Settings {
   physioConsentSignedAt?: string
 }
 
-function load(): Settings {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || 'null') ?? {
-      consentText: DEFAULT_CONSENT,
-      physioName: '',
-    }
-  } catch {
-    return { consentText: DEFAULT_CONSENT, physioName: '' }
+type DbRow = {
+  id: string
+  user_id: string
+  consent_text: string
+  physio_name: string
+  physio_consent_signed_at: string | null
+}
+
+function fromDb(row: DbRow): Settings {
+  return {
+    consentText: row.consent_text,
+    physioName: row.physio_name,
+    physioConsentSignedAt: row.physio_consent_signed_at ?? undefined,
   }
 }
 
+const defaults: Settings = { consentText: DEFAULT_CONSENT, physioName: '' }
+
 export const useAppSettingsStore = defineStore('appSettings', () => {
-  const data = ref<Settings>(load())
+  const data = ref<Settings>({ ...defaults })
+  const loading = ref(false)
 
-  function save() {
-    localStorage.setItem(KEY, JSON.stringify(data.value))
+  async function fetchAll() {
+    loading.value = true
+    const { data: rows, error } = await supabase
+      .from('app_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle()
+    if (!error && rows) {
+      data.value = fromDb(rows as DbRow)
+    }
+    loading.value = false
   }
 
-  function updateConsentText(text: string) {
+  /** Crea o actualiza la fila de settings del usuario. */
+  async function save(partial: Partial<{
+    consent_text: string
+    physio_name: string
+    physio_consent_signed_at: string | null
+  }>) {
+    const auth = useAuthStore()
+    const { data: existing } = await supabase
+      .from('app_settings')
+      .select('id')
+      .limit(1)
+      .maybeSingle()
+
+    if (existing) {
+      const { error } = await supabase
+        .from('app_settings')
+        .update(partial)
+        .eq('id', existing.id)
+      if (error) throw error
+    } else {
+      const { error } = await supabase
+        .from('app_settings')
+        .insert({
+          user_id: auth.userId,
+          consent_text: data.value.consentText,
+          physio_name: data.value.physioName,
+          physio_consent_signed_at: data.value.physioConsentSignedAt || null,
+          ...partial,
+        })
+      if (error) throw error
+    }
+  }
+
+  async function updateConsentText(text: string) {
+    await save({ consent_text: text })
     data.value.consentText = text
-    save()
   }
 
-  function signPhysioConsent(name: string) {
+  async function signPhysioConsent(name: string) {
+    const now = new Date().toISOString()
+    await save({ physio_name: name, physio_consent_signed_at: now })
     data.value.physioName = name
-    data.value.physioConsentSignedAt = new Date().toISOString()
-    save()
+    data.value.physioConsentSignedAt = now
   }
 
-  function revokePhysioConsent() {
+  async function revokePhysioConsent() {
+    await save({ physio_consent_signed_at: null })
     data.value.physioConsentSignedAt = undefined
-    save()
   }
 
-  return { data, updateConsentText, signPhysioConsent, revokePhysioConsent }
+  return { data, loading, fetchAll, updateConsentText, signPhysioConsent, revokePhysioConsent }
 })

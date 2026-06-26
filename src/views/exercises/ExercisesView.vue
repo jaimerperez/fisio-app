@@ -158,10 +158,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useExercisesStore } from '@/stores/exercises'
 import { usePatientsStore } from '@/stores/patients'
-import { getFile } from '@/db/exerciseFiles'
 import type { Patient } from '@/types'
 
 const store = useExercisesStore()
@@ -192,18 +191,13 @@ const filteredPatients = computed(() => {
 watch(filteredExercises, async (list) => {
   for (const ex of list) {
     if (ex.mimeType.startsWith('image/') && !previews.value.has(ex.id)) {
-      const blob = await getFile(ex.id)
-      if (blob) {
-        const url = URL.createObjectURL(blob)
+      const url = await store.fileUrl(ex.path)
+      if (url) {
         previews.value = new Map(previews.value.set(ex.id, url))
       }
     }
   }
 }, { immediate: true })
-
-onUnmounted(() => {
-  previews.value.forEach(url => URL.revokeObjectURL(url))
-})
 
 function toggleSelect(id: string) {
   const next = new Set(selected.value)
@@ -223,12 +217,16 @@ async function handleUpload(event: Event) {
   input.value = ''
 }
 
-function createFolder() {
+async function createFolder() {
   const name = newFolderName.value.trim()
   if (!name) return
-  store.addFolder(name)
   newFolderName.value = ''
   showNewFolder.value = false
+  try {
+    await store.addFolder(name)
+  } catch {
+    alert('Error al crear la carpeta')
+  }
 }
 
 function cancelNewFolder() {
@@ -236,10 +234,14 @@ function cancelNewFolder() {
   showNewFolder.value = false
 }
 
-function deleteFolder(id: string) {
+async function deleteFolder(id: string) {
   if (!confirm('¿Eliminar esta carpeta? Los ejercicios se moverán a "Todas".')) return
   if (selectedFolder.value === id) selectedFolder.value = 'all'
-  store.removeFolder(id)
+  try {
+    await store.removeFolder(id)
+  } catch {
+    alert('Error al eliminar la carpeta')
+  }
 }
 
 async function confirmDelete(id: string) {
@@ -254,7 +256,7 @@ async function sendViaWhatsApp(patient: Patient) {
   const selectedList = store.exercises.filter(e => selected.value.has(e.id))
 
   for (const ex of selectedList) {
-    const blob = await getFile(ex.id)
+    const blob = await store.downloadBlob(ex.path)
     if (!blob) continue
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

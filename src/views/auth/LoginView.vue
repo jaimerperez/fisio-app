@@ -2,24 +2,20 @@
   <div class="min-h-screen flex">
     <!-- Left panel -->
     <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-slate-800 flex-col justify-between p-12">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-white font-bold text-xl backdrop-blur-sm">F</div>
-        <span class="text-2xl font-bold text-white tracking-tight">FisioApp</span>
+      <div></div>
+      <div class="flex flex-col items-center">
+        <BrandLogo class-name="w-64 text-white" />
+        <p class="text-primary-200 text-lg leading-relaxed mt-6 text-center">Pacientes, citas y sesiones<br/>en un solo lugar.</p>
       </div>
-      <div>
-        <h2 class="text-4xl font-bold text-white leading-tight mb-4">Gestiona tu clínica<br/>de forma eficiente</h2>
-        <p class="text-primary-200 text-lg leading-relaxed">Pacientes, citas y sesiones<br/>en un solo lugar.</p>
-      </div>
-      <p class="text-primary-300 text-sm">© 2025 FisioApp</p>
+      <p class="text-primary-300 text-sm">© 2025 Carlos Rodríguez Fisioterapia</p>
     </div>
 
     <!-- Right panel -->
     <div class="flex-1 flex items-center justify-center bg-slate-50 p-8">
       <div class="w-full max-w-sm">
         <!-- Mobile logo -->
-        <div class="lg:hidden flex items-center gap-2 mb-8">
-          <div class="w-8 h-8 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold">F</div>
-          <span class="text-xl font-bold text-slate-800">FisioApp</span>
+        <div class="lg:hidden mb-8">
+          <BrandLogo class-name="w-48 text-slate-800" />
         </div>
 
         <h1 class="text-2xl font-bold text-slate-900 mb-1">Bienvenido</h1>
@@ -55,6 +51,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import BrandLogo from '@/components/BrandLogo.vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 

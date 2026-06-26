@@ -16,9 +16,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'FisioApp',
-        short_name: 'FisioApp',
-        description: 'App de gestión para fisioterapia',
+        name: 'Carlos Rodríguez Fisioterapia',
+        short_name: 'CR Fisio',
+        description: 'Gestión de clínica de fisioterapia',
         theme_color: '#2563eb',
         background_color: '#ffffff',
         display: 'standalone',

@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, watch } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { h } from 'vue'
 import { useAuthStore } from '@/stores/auth'
@@ -76,8 +76,8 @@ const router = useRouter()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
-onMounted(async () => {
-  if (authStore.isAuthenticated) {
+watch(isAuthenticated, async (val) => {
+  if (val) {
     await Promise.all([
       patientsStore.fetchAll(),
       appointmentsStore.fetchAll(),
@@ -86,7 +86,7 @@ onMounted(async () => {
       appSettingsStore.fetchAll(),
     ])
   }
-})
+}, { immediate: true })
 
 async function handleSignOut() {
   await authStore.signOut()

@@ -1,11 +1,44 @@
 <template>
   <div class="flex-1 overflow-auto pb-20 md:pb-0 bg-slate-50">
-    <header class="bg-white border-b border-slate-100 px-6 py-5 shadow-sm">
-      <h1 class="text-xl font-bold text-slate-900">Dashboard</h1>
-      <p class="text-sm text-slate-400 mt-0.5">Resumen general de tu clínica</p>
+    <header class="bg-white border-b border-slate-100 px-6 py-5 shadow-sm flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Dashboard</h1>
+        <p class="text-sm text-slate-400 mt-0.5">Resumen general de tu clínica</p>
+      </div>
+      <button @click="showForm = true"
+        class="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all shrink-0">
+        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Nuevo paciente
+      </button>
     </header>
 
     <div class="p-6 mx-auto space-y-6">
+
+      <!-- Buscador de pacientes -->
+      <div class="relative">
+        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input v-model="searchQuery" type="search" placeholder="Buscar paciente por nombre o DNI..."
+          class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white shadow-sm transition-all" />
+        <div v-if="searchQuery && searchResults.length > 0"
+          class="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-100 shadow-lg z-20 overflow-hidden">
+          <RouterLink v-for="p in searchResults" :key="p.id" :to="`/patients/${p.id}`"
+            @click="searchQuery = ''"
+            class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+              {{ p.name[0] }}{{ p.lastName[0] }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-slate-900 truncate">{{ p.name }} {{ p.lastName }}</p>
+              <p class="text-xs text-slate-400 truncate">{{ p.phone || p.dni || 'Sin datos de contacto' }}</p>
+            </div>
+            <svg class="w-4 h-4 text-slate-300 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+          </RouterLink>
+        </div>
+        <div v-else-if="searchQuery && searchResults.length === 0"
+          class="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-100 shadow-lg z-20 px-4 py-3 text-sm text-slate-400">
+          Sin resultados para "{{ searchQuery }}"
+        </div>
+      </div>
 
       <!-- Stat cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -183,17 +216,97 @@
 
       </div>
     </div>
+
+    <!-- Modal nuevo paciente -->
+    <div v-if="showForm" class="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center p-4">
+      <div class="bg-white rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+        <h2 class="text-lg font-bold text-gray-900">Nuevo paciente</h2>
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Nombre *</label>
+              <input v-model="form.name" type="text" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Apellidos *</label>
+              <input v-model="form.lastName" type="text" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Fecha nacimiento</label>
+              <input v-model="form.birthDate" type="date" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">DNI / NIF</label>
+              <input v-model="form.dni" type="text" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Teléfono</label>
+              <input v-model="form.phone" type="tel" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-700">Email</label>
+              <input v-model="form.email" type="email" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700">Antecedentes médicos</label>
+            <textarea v-model="form.medicalHistory" rows="3" class="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" placeholder="Alergias, medicamentos, patologías previas..." />
+          </div>
+        </div>
+        <div class="flex gap-3 pt-1">
+          <button @click="closeForm" class="flex-1 border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm">Cancelar</button>
+          <button @click="savePatient" :disabled="!form.name || !form.lastName || saving"
+            class="flex-1 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm">
+            {{ saving ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, ref, reactive } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { usePatientsStore } from '@/stores/patients'
 import { useAppointmentsStore } from '@/stores/appointments'
 import { useSessionsStore } from '@/stores/sessions'
 
+const router = useRouter()
 const patientsStore = usePatientsStore()
+
+// ── Buscador ──────────────────────────────────────────────────────
+const searchQuery = ref('')
+const searchResults = computed(() =>
+  searchQuery.value.trim() ? patientsStore.search(searchQuery.value) : []
+)
+
+// ── Nuevo paciente ────────────────────────────────────────────────
+const showForm = ref(false)
+const saving = ref(false)
+const form = reactive({ name: '', lastName: '', birthDate: '', dni: '', phone: '', email: '', medicalHistory: '' })
+
+function closeForm() {
+  showForm.value = false
+  Object.assign(form, { name: '', lastName: '', birthDate: '', dni: '', phone: '', email: '', medicalHistory: '' })
+}
+
+async function savePatient() {
+  saving.value = true
+  try {
+    const patient = await patientsStore.add({ ...form, photos: [], pathologies: '', observations: '', billingRate: 0, billingMethod: '', billingNotes: '' })
+    closeForm()
+    router.push(`/patients/${patient.id}`)
+  } catch (err) {
+    alert(err instanceof Error && err.message === 'EMAIL_TAKEN' ? 'Ya existe un paciente con ese email' : 'Error al guardar el paciente')
+  } finally {
+    saving.value = false
+  }
+}
 const appointmentsStore = useAppointmentsStore()
 const sessionsStore = useSessionsStore()
 
